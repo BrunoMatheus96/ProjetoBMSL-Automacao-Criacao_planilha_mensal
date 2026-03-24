@@ -13,7 +13,7 @@ import os
 
 load_dotenv()
 
-GOOGLE_CREDENCIAIS = os.getenv("GOOGLE_CREDENTIALS")
+GOOGLE_CREDENCIAIS = os.getenv("GOOGLE_CREDENCIAIS")
 
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 
