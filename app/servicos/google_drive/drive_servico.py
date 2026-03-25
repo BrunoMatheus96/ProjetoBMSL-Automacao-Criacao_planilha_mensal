@@ -43,7 +43,7 @@ class GoogleDriveServico:
 
         done = False
         while not done:
-            status, done = downloader.next_chunk()
+            done = downloader.next_chunk()
 
         print("Download concluído ✅")
 
@@ -67,3 +67,16 @@ class GoogleDriveServico:
 
         files = results.get("files", [])
         return files[0] if files else None
+
+    def copiar_arquivo(self, file_id):
+        copia = self.service.files().copy(
+            fileId=file_id
+        ).execute()
+
+        return copia["id"]
+    
+    def renomear_arquivo(self, file_id, novo_nome):
+        self.service.files().update(
+            fileId=file_id,
+            body={"name": novo_nome}
+        ).execute()
