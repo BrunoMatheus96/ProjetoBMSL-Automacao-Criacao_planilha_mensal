@@ -6,7 +6,7 @@ from src.tarefas.listar_arquivos import listar_arquivos
 from src.tarefas.sincronizar_google_sheet import sincronizar
 
 
-def rodar_automacao():
+def rodar_automacao_mensal():
     print("🚀 Iniciando automação...")
 
     baixar_alunos()
