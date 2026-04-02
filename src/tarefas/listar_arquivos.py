@@ -1,4 +1,4 @@
-from src.servicos.google_drive.drive_servico import GoogleDriveServico
+from servicos.google_drive_servico import GoogleDriveServico
 from datetime import datetime
 import locale
 

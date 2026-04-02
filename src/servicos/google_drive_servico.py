@@ -6,7 +6,7 @@ Aqui você usa o google drive e executa ações como:
 """
 
 from googleapiclient.discovery import build
-from src.servicos.google_drive.autenticacao import get_credenciais
+from autenticacoes.google_drive import get_credenciais
 from googleapiclient.http import MediaIoBaseDownload
 import io
 
