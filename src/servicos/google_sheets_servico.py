@@ -38,22 +38,23 @@ class GoogleSheetsServico:
 
         self.client = gspread.authorize(creds)
 
-    def esperar_planilha(self, spreadsheet_id, tentativas=10):
-        for i in range(tentativas):
-            try:
-                print(f" ⏳Tentativa {i+1} de abrir a planilha: {spreadsheet_id}")
+    def esperar_planilha(self, spreadsheet_id):
+        try:
+            if not hasattr(self, "_cache"):
+                self._cache = {}
 
-                planilha = self.client.open_by_key(spreadsheet_id)
-                planilha.worksheets()
+            if spreadsheet_id in self._cache:
+                return self._cache[spreadsheet_id]
 
-                print(" ✅Planilha disponível")
-                return
+            planilha = self.client.open_by_key(spreadsheet_id)
+            self._cache[spreadsheet_id] = planilha
 
-            except Exception as e:
-                print(f" ⌛Ainda não disponível: {e}")
-                time.sleep(2)
+            print(" ✅Planilha disponível")
+            return planilha
 
-        raise Exception(" ❌Planilha não ficou disponível")
+        except Exception as e:
+            print(f" ⌛Erro ao acessar planilha: {e}")
+            time.sleep(2)
 
     def ler_aba(self, spreadsheet_id, nome_aba, tentativas=5):
 
@@ -72,7 +73,7 @@ class GoogleSheetsServico:
                 abas = planilha.worksheets()
 
                 nomes_abas = [a.title for a in abas]
-                print(" 📄Abas encontradas:", nomes_abas)
+                # print(" ➡️Abas encontradas:", nomes_abas)
 
                 aba = next(
                     (
@@ -112,12 +113,37 @@ class GoogleSheetsServico:
         try:
             planilha = self.client.open_by_key(spreadsheet_id)
 
-            try:
-                planilha.worksheet(nome_aba)
-                print(f" ➡️Aba '{nome_aba}' já existe")
-            except:
-                planilha.add_worksheet(title=nome_aba, rows="100", cols="20")
-                print(f" ✅Aba '{nome_aba}' criada")
+            worksheets = planilha.worksheets()
+
+            # se já existe
+            for ws in worksheets:
+                if ws.title == nome_aba:
+                    print(f" 📢Aba '{nome_aba}' já existe")
+                    return ws.id
+
+            # pega última aba como template
+            ultima_aba = worksheets[-1]
+
+            # duplica (cria a nova aba)
+            nova_aba = ultima_aba.duplicate(new_sheet_name=nome_aba)
+
+            # 🔥 RECARREGA LISTA (IMPORTANTE)
+            worksheets = planilha.worksheets()
+
+            # 🔥 PEGA A ABA RECÉM CRIADA
+            nova_ws = next(ws for ws in worksheets if ws.title == nome_aba)
+
+            # 🔥 MOVE PARA A ÚLTIMA POSIÇÃO (FORÇADO)
+            planilha.reorder_worksheets(
+                worksheets_in_desired_order=[
+                    ws for ws in worksheets if ws.title != nome_aba
+                ]
+                + [nova_ws]
+            )
+
+            print(f" ✅Aba '{nome_aba}' criada e movida para última posição")
+
+            return nova_ws.id
 
         except Exception as e:
             print(f"Erro ao criar aba: {e}")
@@ -138,7 +164,18 @@ class GoogleSheetsServico:
             planilha = self.client.open_by_key(spreadsheet_id)
             aba = planilha.worksheet(nome_aba)
 
+            dados = aba.get_all_values()
+
+            if dados:
+                existentes = [linha[0] for linha in dados if linha]
+
+                if valores[0] in existentes:
+                    print(f" 📢Linha '{valores[0]}' já existe")
+                    return
+
             aba.append_row(valores)
+
+            print(f" ✅Linha '{valores[0]}' criada")
 
         except Exception as e:
             print(f"Erro ao adicionar linha: {e}")

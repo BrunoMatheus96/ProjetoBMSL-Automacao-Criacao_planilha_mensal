@@ -71,10 +71,8 @@ def duplicar_planilha_mes():
         novo_id = drive.copiar_arquivo(arquivo_mes_anterior["id"])
         drive.renomear_arquivo(novo_id, mes_atual)
 
-        print(" ✅Duplicado com sucesso")
-        print(' ⏳Carregando...')
-
         time.sleep(10)
+        print(" ✅Duplicado com sucesso")
 
         return novo_id
 
